@@ -15,23 +15,6 @@ local MODE_AVERAGE = 1
 local MODE_LEAST = 2
 local MODE_MOST = 3
 
-local target_types = {
-    "container", 
-    "logistic-container", 
-    "assembling-machine", 
-    "furnace", 
-    "lab",
-    "reactor",
-    "boiler",
-    "rocket-silo",
-    "space-platform-hub",
-    "cargo-landing-pad",
-    "agricultural-tower",
-}
-
-if settings.global["spoilage-sensor-enable-belt-support"].value then
-    table.insert(target_types, "transport-belt")
-end
 
 
 local function concat_table(t1, t2)
@@ -54,6 +37,26 @@ local function update_target(entity_data)
     elseif combinator.direction == defines.direction.west then
         target_pos.x = target_pos.x - 1
     end
+
+    local target_types = {
+        "container", 
+        "logistic-container", 
+        "assembling-machine", 
+        "furnace", 
+        "lab",
+        "reactor",
+        "boiler",
+        "rocket-silo",
+        "space-platform-hub",
+        "cargo-landing-pad",
+        "agricultural-tower",
+    }
+
+
+    if settings.global["spoilage-sensor-enable-belt-support"].value then
+        table.insert(target_types, "transport-belt")
+    end
+
 
     local entities = combinator.surface.find_entities_filtered({
         position = target_pos, 
@@ -120,10 +123,10 @@ local function update_signals(entity_data)
         if inv == nil or #inv == 0 then
             return
         end
-        return
     end
 
     -- calculate freshness
+    
     local signals = {}
     if entity_data.mode == MODE_AVERAGE then
         local counts = {}
