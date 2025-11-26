@@ -15,6 +15,24 @@ local MODE_AVERAGE = 1
 local MODE_LEAST = 2
 local MODE_MOST = 3
 
+local target_types = {
+    "container", 
+    "logistic-container", 
+    "assembling-machine", 
+    "furnace", 
+    "lab",
+    "reactor",
+    "boiler",
+    "rocket-silo",
+    "space-platform-hub",
+    "cargo-landing-pad",
+    "agricultural-tower",
+}
+
+if settings.global["spoilage-sensor-enable-belt-support"].value then
+    table.insert(target_types, "transport-belt")
+end
+
 
 local function concat_table(t1, t2)
     for i=1,#t2 do
@@ -39,19 +57,7 @@ local function update_target(entity_data)
 
     local entities = combinator.surface.find_entities_filtered({
         position = target_pos, 
-        type = {
-            "container", 
-            "logistic-container", 
-            "assembling-machine", 
-            "furnace", 
-            "lab",
-            "reactor",
-            "boiler",
-            "rocket-silo",
-            "space-platform-hub",
-            "cargo-landing-pad",
-            "agricultural-tower"
-        }
+        type = target_types
     })
     if #entities > 0 then
         entity_data.target = entities[1]
@@ -99,6 +105,22 @@ local function update_signals(entity_data)
         concat_table(inv, entity_data.target.get_inventory(defines.inventory.cargo_landing_pad_main))
     elseif entity_type == "agricultural-tower" then
         concat_table(inv, entity_data.target.get_inventory(defines.inventory.assembling_machine_output))
+    elseif entity_type == "transport-belt" and settings.global["spoilage-sensor-enable-belt-support"].value then
+        local max_line = entity_data.target.get_max_transport_line_index()
+        for line_idx = 1, max_line do
+            local details = entity_data.target.get_transport_line(line_idx).get_detailed_contents()
+            if details then
+                for _, detail in ipairs(details) do
+                    if detail.stack then
+                        inv[#inv+1] = detail.stack
+                    end
+                end
+            end
+        end
+        if inv == nil or #inv == 0 then
+            return
+        end
+        return
     end
 
     -- calculate freshness
@@ -113,8 +135,6 @@ local function update_signals(entity_data)
                     signals[item_name] = 0
                     counts[item_name] = 0
                 end
-                signals[item_name] = signals[item_name] + itemStack.spoil_percent * itemStack.count
-                counts[item_name] = counts[item_name] + itemStack.count
             end
         end
         for k,v in pairs(signals) do

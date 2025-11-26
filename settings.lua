@@ -19,4 +19,11 @@ data:extend{
         maximum_value = 36000,
         order = "b"
     },
+    {
+        type = "bool-setting",
+        name = "spoilage-sensor-enable-belt-support",
+        setting_type = "runtime-global",
+        default_value = false,
+        order = "c"
+    }
 }
