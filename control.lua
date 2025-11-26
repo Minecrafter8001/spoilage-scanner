@@ -143,6 +143,8 @@ local function update_signals(entity_data)
         for k,v in pairs(signals) do
             if counts[k] > 0 then
                 signals[k] = math.ceil(100 - v / counts[k] * 100)
+            else
+                signals[k] = 0
             end
         end
     elseif entity_data.mode == MODE_LEAST then
